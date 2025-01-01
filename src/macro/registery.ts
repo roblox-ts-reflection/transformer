@@ -12,7 +12,7 @@ export function TransformRegistery(node: ts.CallExpression) {
 	const type = typeChecker.getTypeFromTypeNode(typeArgument);
 
 	if (type.isUnion()) {
-		const types = type.types.map((v) => GenerateTypeDescription(v, true));
+		const types = type.types.map((v) => GenerateTypeDescription(v));
 		return ReflectionRuntime.RegisterTypes(...types);
 	}
 

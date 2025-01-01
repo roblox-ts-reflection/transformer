@@ -5,6 +5,7 @@ import { TransformState } from "../transformer";
 import { GenerateGenericsFromAttributeApi } from "../transformers/transform-attribute-api";
 import { ConvertValueToExpression } from "../type-builders";
 import { f } from "./factory";
+import { GetReferenceType } from "./generate-type-description";
 
 export const GENERICS_ARRAY = "__GENERICS_ARRAY";
 let DefinedGenerics: ts.Type[] | undefined = undefined;
@@ -67,7 +68,7 @@ export function GenerateSetupGenericParameters(node: ts.CallExpression) {
 				}
 			}
 
-			return GetTypeUid(type);
+			return GetReferenceType(type);
 		}),
 	);
 }

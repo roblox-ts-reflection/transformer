@@ -192,7 +192,7 @@ export function GetSymbolAssembly(symbol: ts.Symbol) {
 }
 
 export function GenerateRegisterType(type: ts.Type) {
-	return ReflectionRuntime.RegisterType(GenerateTypeDescription(type, true));
+	return ReflectionRuntime.RegisterType(GenerateTypeDescription(type));
 }
 
 export function GenerateUID(filePath: string, name: string) {
@@ -302,7 +302,6 @@ export function GetTypeAssembly(type: ts.Type) {
 	return "Global";
 }
 
-
 export function IsPrimive(type: ts.Type) {
 	return (
 		(type.flags | ts.TypeFlags.Intrinsic) === ts.TypeFlags.Intrinsic ||
@@ -347,11 +346,11 @@ export function GetTypeUid(type: ts.Type) {
 	}
 
 	if (type.flags & ts.TypeFlags.NumberLiteral) {
-		return `PrimitiveNumber:${(type as ts.NumberLiteralType).value}`;
+		return `Primitive:number`;
 	}
 
 	if (type.flags & ts.TypeFlags.StringLiteral) {
-		return `PrimitiveString:${(type as ts.StringLiteralType).value}`;
+		return `Primitive:string`;
 	}
 
 	if (type.flags & ts.TypeFlags.ObjectFlagsType) {

@@ -8,7 +8,7 @@ export function VisitTypeAliasDeclaration(state: TransformState, node: ts.TypeAl
 	if (!HaveTag(node, state.projectConfig.Tags.reflect)) return node;
 
 	const typeChecker = TransformState.Instance.typeChecker;
-	const typeDescription = GenerateTypeDescription(typeChecker.getTypeAtLocation(node), true);
+	const typeDescription = GenerateTypeDescription(typeChecker.getTypeAtLocation(node));
 
 	state.AddNode(ReflectionRuntime.RegisterType(typeDescription), "before");
 	return node;

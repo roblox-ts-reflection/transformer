@@ -13,6 +13,8 @@ export interface Type {
 	readonly Assembly: string;
 	readonly Value?: unknown;
 	readonly ConditionalType?: ConditionalType;
+	readonly Types: Type[];
+	readonly LiteralValue: unknown;
 	readonly Constructor?: ConstructorInfo;
 	readonly Kind: TypeKind;
 	readonly BaseType: Type | undefined;

@@ -8,7 +8,7 @@ export function VisitEnumDeclaration(state: TransformState, node: ts.EnumDeclara
 	if (!HaveTag(node, state.projectConfig.Tags.reflect)) return node;
 
 	const typeChecker = TransformState.Instance.typeChecker;
-	const typeDescription = GenerateTypeDescription(typeChecker.getTypeAtLocation(node), true);
+	const typeDescription = GenerateTypeDescription(typeChecker.getTypeAtLocation(node));
 
 	state.AddNode(ReflectionRuntime.RegisterType(typeDescription), "after");
 	return state.Transform(node);

@@ -8,7 +8,7 @@ export function VisitInterfaceDeclaration(context: TransformState, node: ts.Inte
 	if (!IsCanRegisterType(node)) return node;
 
 	const typeChecker = TransformState.Instance.typeChecker;
-	const typeDescription = GenerateTypeDescription(typeChecker.getTypeAtLocation(node), true);
+	const typeDescription = GenerateTypeDescription(typeChecker.getTypeAtLocation(node));
 
 	context.AddNode(ReflectionRuntime.RegisterType(typeDescription), "before");
 	return context.Transform(node);

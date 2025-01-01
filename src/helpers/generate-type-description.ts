@@ -23,7 +23,6 @@ import { GetRobloxInstanceTypeFromType } from "./get-roblox-instance-type";
 import { GetTypeKind } from "./get-type-kind";
 import { Logger } from "./logger";
 
-let scheduledType: string | undefined;
 let currentTypeHash: string | undefined;
 let isLocalType = false;
 
@@ -39,7 +38,7 @@ function IsBaseType(type: ts.Type) {
 
 function IsBaseTypeBySymbol(symbol: ts.Symbol) {
 	const assembly = GetSymbolAssembly(symbol);
-	return IsPrimive(getType(symbol)!) || assembly === "@rbxts/compiler-types" || assembly === "@rbxts/types";
+	return assembly === "@rbxts/compiler-types" || assembly === "@rbxts/types";
 }
 
 function ExcludeContentForBaseTypes<T>(type: ts.Type, content: T[]) {
@@ -93,7 +92,7 @@ function RegisterTypeWithGeneric(type: ts.Type) {
 	return id;
 }
 
-function GetReferenceType(type: ts.Type): Type {
+export function GetReferenceType(type: ts.Type): Type {
 	const symbol = getSymbol(type);
 	const declaration = getDeclaration(symbol);
 	const typeChecker = TransformState.Instance.typeChecker;
@@ -103,13 +102,13 @@ function GetReferenceType(type: ts.Type): Type {
 	// this type
 	if (type.isTypeParameter() && type.isThisType) {
 		const fullName = GetTypeUid(type);
-		return ReflectionRuntime.__GetType(fullName, true);
+		return ReflectionRuntime.__GetType(fullName);
 	}
 
 	if (currentTypeHash === hash) {
 		if (!isLocalType) {
 			const fullName = GetTypeUid(type);
-			return ReflectionRuntime.__GetType(fullName, true);
+			return ReflectionRuntime.__GetType(fullName);
 		}
 	}
 
@@ -127,9 +126,9 @@ function GetReferenceType(type: ts.Type): Type {
 		return ReflectionRuntime.GetLocalType(id, false);
 	}
 
-	if ((declaration || IsPrimive(type)) && !IsAnonymousObject(type)) {
+	if ((declaration || (IsPrimive(type) && !type.isLiteral())) && !IsAnonymousObject(type)) {
 		const fullName = GetTypeUid(type);
-		return ReflectionRuntime.__GetType(fullName, scheduledType !== undefined && fullName === scheduledType);
+		return ReflectionRuntime.__GetType(fullName);
 	}
 
 	return GenerateTypeDescription(type);
@@ -396,6 +395,16 @@ function GetConstraint(type: ts.Type): Type | undefined {
 	return GetReferenceType(constraint);
 }
 
+function GetTypes(type: ts.Type) {
+	if (!type.isUnionOrIntersection()) return [];
+	return type.types.map((type) => GetReferenceType(type));
+}
+
+function GetLiteralValue(type: ts.Type) {
+	if (!type.isLiteral()) return undefined;
+	return type.value;
+}
+
 function GetConditionalType(type: ts.Type): ConditionalType | undefined {
 	if ((type.flags | ts.TypeFlags.Conditional) !== ts.TypeFlags.Conditional) return;
 
@@ -433,7 +442,7 @@ function GetTypeParameters(type: ts.Type) {
 
 let definedGenerics: Map<string, number> | undefined;
 
-export function GenerateTypeDescription(type: ts.Type, schedulingType = true): Type {
+export function GenerateTypeDescription(type: ts.Type): Type {
 	const typeChecker = TransformState.Instance.typeChecker;
 	const declaration = getDeclaration(getSymbol(type));
 	const fullName = GetTypeUid(type);
@@ -445,10 +454,6 @@ export function GenerateTypeDescription(type: ts.Type, schedulingType = true): T
 
 	genericIds.forEach((v) => definedGenerics!.set(v[1], v[0]));
 	currentTypeHash = hash;
-
-	if (schedulingType) {
-		scheduledType = fullName;
-	}
 
 	const decscription: Type = {
 		Name: GetTypeName(type),
@@ -463,6 +468,8 @@ export function GenerateTypeDescription(type: ts.Type, schedulingType = true): T
 		FullName: fullName,
 		Assembly: GetTypeAssembly(type),
 		Value: GetReferenceValue(type),
+		LiteralValue: GetLiteralValue(type),
+		Types: GetTypes(type),
 		Constructor: GetConstructor(type),
 		ConditionalType: GetConditionalType(type),
 		BaseType: GetBaseType(type),
@@ -473,10 +480,6 @@ export function GenerateTypeDescription(type: ts.Type, schedulingType = true): T
 		Constraint: GetConstraint(type),
 		RobloxInstanceType: GetRobloxInstanceType(type),
 	};
-
-	if (schedulingType) {
-		scheduledType = undefined;
-	}
 
 	currentTypeHash = undefined;
 	definedGenerics = prevDefinedGenerics;
